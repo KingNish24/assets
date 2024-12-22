@@ -2,777 +2,829 @@
 import {
   updateURLParams,
   initFromURL,
-  saveSessionStorageData,
-  getSessionStorageData,
+  savelocalStorageData,
+  getlocalStorageData,
   sessionCache,
-  clearSessionCache
+  clearSessionCache,
+  saveBookmarkedQuestion,
+  removeBookmarkedQuestion,
+  getAllBookmarkedQuestions
 } from './utils.js';
 
-// Initialize from URL and session storage on page load
-const urlData = initFromURL();
-
+// Constants
 const API_BASE = 'https://qapi-xbw7.onrender.com/';
-let subject = '',
-  chapter = '',
-  topic = '',
-  questions = [],
-  currentQuestionIndex = 0,
-  timer = 0,
-  timerInterval;
+const SKELETON_COUNT = 9;
+
+// DOM element cache
+const $subjects = $('#subjects');
+const $chapters = $('#chapters');
+const $topics = $('#topics');
+const $questionContent = $('#question-content');
+const $timer = $('#timer');
+const $score = $('#score');
+const $questionListContainer = $('#question-list-container');
+const $questionSidebar = $('#question-sidebar');
+const $questionItem = $('#question-item');
+const $answerOptions = $('#answer-options');
+const $answerInputField = $('#answer-input-field');
+const $submitAnswerButton = $('#submit-answer-button');
+const $previousQuestionButton = $('#previous-question-button');
+const $nextQuestionButton = $('#next-question-button');
+const $resetQuizButton = $('#reset-quiz-button');
+const $currentQuestionNumber = $('#current-question-number');
+const $paperTitle = $('#paper-title');
+const $explanation = $('#explanation');
+const $totalQuestionsNumber = $('#total-questions-number');
+const $subjectContainer = $('#subject-container');
+const $chapterContainer = $('#chapter-container');
+const $topicContainer = $('#topic-container');
+const $questionContainer = $('#question-container');
+const $breadcrumbSubj = $('#breadcrumb-subj');
+const $breadcrumbChap = $('#breadcrumb-chap');
+const $breadcrumbTopi = $('#breadcrumb-topi');
+const $breadcrumbSubject = $('#breadcrumb-subject');
+const $breadcrumbChapter = $('#breadcrumb-chapter');
+const $breadcrumbTopic = $('#breadcrumbTopic');
+const $darkModeToggle = $('.theme-toggle');
+const $html = $('html');
+const $body = $('body');
+const $breadcrumbHome = $('#breadcrumb-home');
+const $backToSubjects = $('#back-to-subjects');
+const $backToChapters = $('#back-to-chapters');
+const $imageContainer = $('#image-container');
+const $bookmarkButton = $('#bookmark-button');
+
+// State variables
+let subject = '';
+let chapter = '';
+let topic = '';
+let questions = [];
+let currentQuestionIndex = 0;
+let timer = 0;
+let timerInterval;
 let questionProgress = [];
 let isManualScroll = false;
 let scrollTimeoutId = null;
 let isDarkMode = localStorage.getItem('darkMode') === 'enabled';
 let score = 0;
 
+// Initialize from URL and session storage on page load
+const urlData = initFromURL();
+
 subject = urlData.subject;
 chapter = urlData.chapter;
 topic = urlData.topic;
-currentQuestionIndex = Math.max(urlData.questionNumber - 1, 0)
+currentQuestionIndex = Math.max(urlData.questionNumber - 1, 0);
 
 setInitialTheme();
 updateBreadcrumb();
 
+const correctSound = new Audio('correct.mp3');
+const wrongSound = new Audio('wrong.mp3');
 
-// Function to format time in mm:ss format
+// --- Utility Functions ---
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const secondsRemaining = seconds % 60;
   let timeString = '';
   if (minutes > 0) {
-    timeString += minutes + 'm ';
+      timeString += `${minutes}m `;
   }
   if (secondsRemaining > 0) {
-    timeString += secondsRemaining + 's';
+      timeString += `${secondsRemaining}s`;
   }
   return timeString;
 }
 
-function showSubjectSkeletons() {
-  $('#subjects').html(`
-    <div class="skeleton skeleton-subject"></div>
-    <div class="skeleton skeleton-subject"></div>
-    <div class="skeleton skeleton-subject"></div>
-  `);
-}
-
-function showChapterSkeletons() {
-  $('#chapters').html(`
-    ${Array(9).fill(`<div class="skeleton skeleton-chapter"></div>`).join('')}
-  `);
-}
-
-function showTopicSkeletons() {
-  $('#topics').html(`
-    ${Array(9).fill(`<div class="skeleton skeleton-topic"></div>`).join('')}
-  `);
-}
-
-function showQuestionSkeletons() {
-  $('#question-content').html(`
-    <div class="skeleton skeleton-question"></div>
-    <div class="skeleton skeleton-option"></div>
-    <div class="skeleton skeleton-option"></div>
-    <div class="skeleton skeleton-option"></div>
-    <div class="skeleton skeleton-option"></div>
-  `);
-}
-
-// Function to start the timer
-function startTimer() {
-  timer = 0;
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    timer++;
-    $('#timer').text(formatTime(timer));
-  }, 1000);
-}
-
-// Function to stop the timer
-function stopTimer() {
-  clearInterval(timerInterval);
-}
-
-// Function to render MathJax
 function renderMathJax() {
   MathJax.typesetPromise()
-    .then(() => {
-      console.log('MathJax rendering complete');
-    })
-    .catch(err => {
-      console.error('MathJax rendering failed:', err);
-    });
+      .then(() => {
+          console.log('MathJax rendering complete');
+      })
+      .catch(err => {
+          console.error('MathJax rendering failed:', err);
+      });
 }
 
-// Function to render content
 function renderContent(html) {
   return html;
 }
 
-// Function to fetch and render subjects
+function showSkeletons(element, skeletonClass, count) {
+  element.html(
+      Array(count)
+          .fill(`<div class="skeleton ${skeletonClass}"></div>`)
+          .join('')
+  );
+}
+
+function showSubjectSkeletons() {
+  showSkeletons($subjects, 'skeleton-subject', 3);
+}
+
+function showChapterSkeletons() {
+  showSkeletons($chapters, 'skeleton-chapter', SKELETON_COUNT);
+}
+
+function showTopicSkeletons() {
+  showSkeletons($topics, 'skeleton-topic', SKELETON_COUNT);
+}
+
+function showQuestionSkeletons() {
+  $questionContent.html(`
+  <div class="skeleton skeleton-question"></div>
+  <div class="skeleton skeleton-option"></div>
+  <div class="skeleton skeleton-option"></div>
+  <div class="skeleton skeleton-option"></div>
+  <div class="skeleton skeleton-option"></div>
+`);
+}
+
+// --- Timer Functions ---
+function startTimer() {
+  timer = 0;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+      timer++;
+      $timer.text(formatTime(timer));
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+// --- Fetch and Render Functions ---
+
+// <!--From api we get 2 things URL of a (to send user to that link when he clicks it) and url of image. -->
+function fetchAndRenderImage() {
+  // fetch image from apibase image
+  fetch(`${API_BASE}banner`, {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+  })
+      .then(response => response.json())
+      .then(data => {
+          const imageUrl = data.url;
+          const clickUrl = data.clickUrl;
+          const imageContainer = document.getElementById('image-container');
+          imageContainer.innerHTML = `<img id="image" class="shadow-md transition-transform duration-300 flex items-center justify-between cursor-pointer" src=${imageUrl} alt="Discord" onclick="window.open('${clickUrl}', '_blank')">`;
+      })
+      .catch(error => console.error('Error fetching image:', error));
+}
+
 function fetchAndRenderSubjects() {
-  $('#subject-container').show();
+  $subjectContainer.show();
   showSubjectSkeletons();
-  $('#subjects').html('');
+  $subjects.html('');
 
   const subjectsData = [
-    {
-      name: 'maths',
-      icon: 'fas fa-calculator',
-      chapters: 36,
-      questions: 5003,
-      color: 'blue',
-    },
-    {
-      name: 'physics',
-      icon: 'fas fa-ruler',
-      chapters: 32,
-      questions: 5042,
-      color: 'orange',
-    },
-    {
-      name: 'chemistry',
-      icon: 'fas fa-flask',
-      chapters: 33,
-      questions: 5030,
-      color: 'green',
-    },
+      {
+          name: 'maths',
+          icon: 'fas fa-calculator',
+          chapters: 32,
+          questions: 4515,
+          color: 'blue',
+      },
+      {
+          name: 'physics',
+          icon: 'fas fa-rocket',
+          chapters: 28,
+          questions: 4507,
+          color: 'orange',
+      },
+      {
+          name: 'chemistry',
+          icon: 'fas fa-flask',
+          chapters: 31,
+          questions: 4243,
+          color: 'green',
+      },
   ];
 
   subjectsData.forEach(sub => {
-    $('#subjects').append(`
-          <div class="subject-card bg-${sub.color}-200 text-gray-800 p-7 rounded-xl shadow-md transition-colors duration-300 flex items-center justify-between cursor-pointer" data-subject="${sub.name}">
-            <div>
-              <h4 class="text-xl font-bold mb-2 capitalize">${sub.name} <i class="fas fa-angle-right"></i></h4>
-              <p class="text-sm">${sub.chapters} Chapters, ${sub.questions} Qs</p>
-            </div>
-            <div class="icon-container p-3 bg-${sub.color}-400 rounded-full">
-              <i class="${sub.icon} text-white text-xl"></i>
-            </div>
+      $subjects.append(`
+        <div class="subject-card bg-${sub.color}-200 text-gray-800 p-7 rounded-2xl shadow-md transition-transform duration-300 flex items-center justify-between cursor-pointer hover:scale-105" data-subject="${sub.name}">
+          <div>
+            <h4 class="text-xl font-bold mb-2 capitalize">${sub.name} <i class="fas fa-angle-right"></i></h4>
+            <p class="text-sm">${sub.chapters} Chapters, ${sub.questions} Qs</p>
           </div>
-        `);
+          <div class="icon-container p-3 bg-${sub.color}-400 rounded-full">
+            <i class="${sub.icon} text-white text-xl"></i>
+          </div>
+        </div>
+      `);
   });
 }
 
-// Function to fetch and render chapters
 function fetchChapters() {
-  $('#subject-container').hide();
-  $('#chapter-container').show();
+  $subjectContainer.hide();
+  $chapterContainer.show();
   showChapterSkeletons();
   const cacheKey = `${subject}-chapters`;
 
   if (sessionCache[cacheKey]) {
-    renderChapters(sessionCache[cacheKey]);
-    return;
+      renderChapters(sessionCache[cacheKey]);
+      return;
   }
 
   $.get(`${API_BASE}${subject}`, data => {
-    sessionCache[cacheKey] = data;
-    renderChapters(data);
+      sessionCache[cacheKey] = data;
+      renderChapters(data);
   });
 }
 
 function renderChapters(data) {
-  // $('#subject-container').hide();
-  // $('#chapter-container').show();
-  // $('#subject-container').show();
-  $('#chapters').html('');
+  $chapters.html(''); // Clear the existing content
+
   data.chapters.forEach(ch => {
-    $('#chapters').append(`
-             <button class='btn font-bold capitalize chapter ' data-chapter='${ch}'>
-                 ${ch.replace(/-/g, ' ')}
-             </button>
-         `);
+      $chapters.append(`
+      <button class="btn chapter w-100 p-3 rounded-2xl shadow-sm transition-transform duration-300 hover:scale-105 dark:border-slate-700" data-chapter="${ch.name}">
+        <div class="d-flex justify-content-center align-items-center">
+          <p class="mb-0 font-weight-bold chapter-title font-bold capitalize chapter">${ch.name.replace(/-/g, ' ')}</p>
+          <p class="mb-0 text-muted question-count text-[0.7rem]">${ch.questionCount} Qs</p>
+        </div>
+      </button>
+  `);
   });
 }
 
-// Function to fetch and render topics
 function fetchTopics() {
-  $('#subject-container').hide();
-  $('#chapter-container').hide();
-  $('#topic-container').show();
+  $subjectContainer.hide();
+  $chapterContainer.hide();
+  $topicContainer.show();
   showTopicSkeletons();
   const cacheKey = `${subject}-${chapter}-topics`;
 
   if (sessionCache[cacheKey]) {
-    renderTopics(sessionCache[cacheKey]);
-    return;
+      renderTopics(sessionCache[cacheKey]);
+      return;
   }
   $.get(`${API_BASE}${subject}/${chapter}`, data => {
-    sessionCache[cacheKey] = data;
-    renderTopics(data);
+      sessionCache[cacheKey] = data;
+      renderTopics(data);
   });
 }
 
 function renderTopics(data) {
-  $('#topics').html('');
+  $topics.html(''); // Clear the existing content (assuming $topics exists)
+
   data.topics.forEach(tp => {
-    $('#topics').append(`
-             <button class='btn font-bold capitalize topic ' data-topic='${tp}'>
-                 ${tp.replace(/-/g, ' ')}
-             </button>
-         `);
+      $topics.append(`
+      <button class="btn topic w-100 p-3 rounded-2xl shadow-sm transition-transform duration-300 hover:scale-105 dark:border-slate-700" data-topic="${tp.name}">
+        <div class="d-flex justify-content-center align-items-center">
+          <p class="mb-0 font-weight-bold topic-title font-bold capitalize">${tp.name.replace(/-/g, ' ')}</p>
+          <p class="mb-0 text-muted question-count text-[0.7rem]">${tp.questionCount} Qs</p>
+        </div>
+      </button>
+  `);
   });
 }
 
-// Function to initialize question progress
+function fetchQuestions() {
+  $subjectContainer.hide();
+  $topicContainer.hide();
+  $questionContainer.show();
+  $questionSidebar.show();
+  showQuestionSkeletons();
+  const cacheKey = `${subject}-${chapter}-${topic}-questions`;
+
+  if (sessionCache[cacheKey]) {
+      questions = sessionCache[cacheKey];
+      renderQuestions();
+      return;
+  }
+
+  $.get(`${API_BASE}${subject}/${chapter}/${topic}`, data => {
+      sessionCache[cacheKey] = data.questions.reverse();
+      questions = sessionCache[cacheKey];
+      renderQuestions();
+  });
+}
+
+function renderQuestions() {
+  showQuestionSkeletons();
+  $subjectContainer.hide();
+  initQuestionProgress();
+  $totalQuestionsNumber.text(questions.length);
+  $questionContainer.show();
+
+  renderQuestion();
+  $topicContainer.hide();
+  $questionSidebar.show();
+}
+
+// --- Question Progress and Rendering ---
 function initQuestionProgress() {
   score = 0;
-  $('#score').text(score);
+  $score.text(score);
   questionProgress = questions.map((q, index) => ({
-    index: index,
-    answered: false,
-    correct: null,
-    type: q.type,
-    userAnswer: null, // Store user's answer
-    viewed: false, // Track if the question has been viewed
+      index: index,
+      answered: false,
+      correct: null,
+      type: q.type,
+      userAnswer: null,
+      viewed: false,
+      bookmarked: false,
   }));
 
-  // Load saved progress from session storage
-  const savedProgress = getSessionStorageData(subject,chapter,topic);
+  const savedProgress = getlocalStorageData(subject, chapter, topic);
   if (savedProgress) {
-    questionProgress = savedProgress;
-    // Calculate the number of correct answers and update the score
-    score = questionProgress.reduce((sum, q) => (q.correct ? sum + 1 : sum), 0);
-    $('#score').text(score);
-    // Update score from session storage
+      questionProgress = savedProgress;
+      score = questionProgress.reduce((sum, q) => (q.correct ? sum + 1 : sum), 0);
+      $score.text(score);
   }
   updateQuestionListUI();
 }
 
-// Function to update the question list UI
 function updateQuestionListUI() {
   const questionList = $(`
-        <div id="question-list-container" class="flex flex-nowrap">
-            ${questionProgress
-            .map(
-              q => `
-                 <div class="question-item btn font-bold  capitalize ${q.answered
-                ? q.correct
-                  ? 'btn-success text-white text'
-                  : 'btn-error text-white'
-                : q.viewed
-                  ? 'btn-info text-white'
-                  : 'border-black text'
+  <div id="question-list-container" class="flex flex-nowrap">
+      ${questionProgress
+      .map(
+          q => `
+           <div class="question-item btn font-bold dark:border-slate-700  capitalize ${q.answered
+                  ? q.correct
+                      ? 'btn-success text-white'
+                      : 'btn-error text-white'
+                  : q.viewed
+                      ? 'btn-info text-white'
+                      : 'border-black text'
               }" data-index="${q.index}">
-                    Q${q.index + 1}
-                    ${q.answered
-                ? q.correct
-                  ? '<i class="fas fa-check"></i>'
-                  : '<i class="fas fa-times"></i>'
-                : ''
-              }
-                </div>
+              Q${q.index + 1}
+              ${q.answered
+                  ? q.correct
+                      ? '<i class="fas fa-check"></i>'
+                      : '<i class="fas fa-times"></i>'
+                  : ''}
+              ${
+                  q.bookmarked
+                      ? '<i class="fas fa-bookmark text-yellow-500"></i>'
+                      : ''
+                  }
+            </div>
             `
-            )
-            .join('')}
-        </div>
-    `);
+          )
+          .join('')}
+      </div>
+  `);
 
   questionList.on('click', '.question-item', function () {
-    const targetIndex = $(this).data('index');
-    currentQuestionIndex = targetIndex;
-    updateURLParams({
-      subject,
-      chapter,
-      topic,
-      'question-number': currentQuestionIndex + 1,
-    });
-    renderQuestion();
+      const targetIndex = $(this).data('index');
+      currentQuestionIndex = targetIndex;
+      updateURLParams({
+          subject,
+          chapter,
+          topic,
+          'question-number': currentQuestionIndex + 1,
+      });
+      renderQuestion();
   });
 
-  $('#question-list-container').remove();
-  $('#question-sidebar').html(questionList);
+  $questionListContainer.remove();
+  $questionSidebar.html(questionList);
 
-  const container = $('#question-sidebar');
+  const container = $questionSidebar;
   container.on('scroll', function () {
-    isManualScroll = true;
-    clearTimeout(scrollTimeoutId);
-    scrollTimeoutId = setTimeout(function () {
-      isManualScroll = false;
-    }, 500);
+      isManualScroll = true;
+      clearTimeout(scrollTimeoutId);
+      scrollTimeoutId = setTimeout(function () {
+          isManualScroll = false;
+      }, 500);
   });
 
-  // Center the current question
   const currentQuestionItem = $(
-    `.question-item[data-index="${currentQuestionIndex}"]`
+      `.question-item[data-index="${currentQuestionIndex}"]`
   );
   const itemHeight = currentQuestionItem.outerHeight();
   const containerHeight = container.outerHeight();
   const itemTop = currentQuestionItem.position().top;
   const newScrollTop = itemTop - (containerHeight - itemHeight) / 2;
 
-  // Adjust scroll position on container scroll
   container.on('scroll', function () {
-    const currentScrollTop = container.scrollTop();
-    const currentQuestionItem = $(
-      `.question-item[data-index="${currentQuestionIndex}"]`
-    );
-    const itemTop = currentQuestionItem.position().top;
-    const newScrollTop = itemTop - (containerHeight - itemHeight) / 2;
-    if (Math.abs(currentScrollTop - newScrollTop) > 10) {
-    }
+      const currentScrollTop = container.scrollTop();
+      const currentQuestionItem = $(
+          `.question-item[data-index="${currentQuestionIndex}"]`
+      );
+      const itemTop = currentQuestionItem.position().top;
+      const newScrollTop = itemTop - (containerHeight - itemHeight) / 2;
+      if (Math.abs(currentScrollTop - newScrollTop) > 10) {
+          // Additional logic can be added here if needed
+      }
   });
 
-  // Add a timeout to ensure the container has finished rendering
   setTimeout(function () { }, 100);
 }
 
-// Function to render a question
 function renderQuestion() {
   if (!questions.length) return;
 
   const currentQuestion = questions[currentQuestionIndex];
   const q = currentQuestion.question;
-  $('#reset-quiz-button').hide();
+  $resetQuizButton.hide();
 
-  // Update question number and paper title
-  $('#current-question-number').text(currentQuestionIndex + 1);
-  $('#paper-title').text(currentQuestion.paperTitle || '');
+  $currentQuestionNumber.text(currentQuestionIndex + 1);
+  $paperTitle.text(currentQuestion.paperTitle || '');
 
-  $('#question-content').html(renderContent(q.content));
-  $('#submit-answer-button').prop('disabled', false);
+  $questionContent.html(renderContent(q.content));
+  $submitAnswerButton.prop('disabled', false);
   $('.option').removeClass('disabled');
-  $('#answer-input-field').prop('disabled', false);
+  $answerInputField.prop('disabled', false);
 
-  // Render based on question type
   if (currentQuestion.type === 'mcq') {
-    const options = q.options
-      .map(opt => {
-        const renderedContent = renderContent(opt.content);
-        return `
-                <button class='btn font-bold option' data-identifier='${opt.identifier}'>
-                    ${renderedContent}
-                </button>
-            `;
-      })
-      .join('');
-    $('#answer-options').html(options);
-    $('#answer-input-field').hide();
-    $('#answer-options').show();
+      const options = q.options
+          .map(opt => {
+              const renderedContent = renderContent(opt.content);
+              return `
+              <button class='btn font option dark:border-slate-700 hover:scale-[1.01] active:scale-[0.99]' data-identifier="${opt.identifier}">
+                  ${renderedContent}
+              </button>
+          `;
+          })
+          .join('');
+      $answerOptions.html(options);
+      $answerInputField.hide();
+      $answerOptions.show();
   } else if (currentQuestion.type === 'integer') {
-    $('#answer-options').hide();
-    $('#answer-input-field')
-      .show()
-      .val('') // Clear previous input
-      .attr('type', 'number');
+      $answerOptions.hide();
+      $answerInputField
+          .show()
+          .val('')
+          .attr('type', 'number');
   }
 
-  // Restore user's previous answer
   const userAnswer = questionProgress[currentQuestionIndex].userAnswer;
   if (userAnswer) {
-    if (currentQuestion.type === 'mcq') {
-      $(`.option[data-identifier="${userAnswer}"]`).addClass('selected');
-    } else if (currentQuestion.type === 'integer') {
-      $('#answer-input-field').val(userAnswer);
-    }
+      if (currentQuestion.type === 'mcq') {
+          $(`.option[data-identifier="${userAnswer}"]`).addClass('selected');
+      } else if (currentQuestion.type === 'integer') {
+          $answerInputField.val(userAnswer);
+      }
   }
 
-  // Reset previous states
   $('.option').removeClass('selected correct incorrect');
-  $('#explanation').html('');
-  $('#submit-answer-button').show();
+  $explanation.html('');
+  $submitAnswerButton.show();
 
-  // Manage navigation buttons
-  $('#previous-question-button').prop('disabled', currentQuestionIndex === 0);
-  $('#next-question-button').prop(
-    'disabled',
-    currentQuestionIndex === questions.length - 1
+  $previousQuestionButton.prop('disabled', currentQuestionIndex === 0);
+  $nextQuestionButton.prop(
+      'disabled',
+      currentQuestionIndex === questions.length - 1
   );
 
-  // Highlight current question in list and scroll to it
   $('.question-item').removeClass('active');
   const currentQuestionItem = $(
-    `.question-item[data-index="${currentQuestionIndex}"]`
+      `.question-item[data-index="${currentQuestionIndex}"]`
   );
   currentQuestionItem.addClass('active');
 
-  const container = $('#question-sidebar');
+  const container = $questionSidebar;
   if (!isManualScroll) {
-    const itemTop =
-      currentQuestionItem.offset().top -
-      container.offset().top +
-      container.scrollTop();
-    const itemHeight = currentQuestionItem.outerHeight();
-    const containerHeight = container.outerHeight();
-    const newScrollTop = itemTop - (containerHeight - itemHeight) / 2;
-    container.stop().animate({ scrollTop: newScrollTop }, 500);
+      const itemTop =
+          currentQuestionItem.offset().top -
+          container.offset().top +
+          container.scrollTop();
+      const itemHeight = currentQuestionItem.outerHeight();
+      const containerHeight = container.outerHeight();
+      const newScrollTop = itemTop - (containerHeight - itemHeight) / 2;
+      container.stop().animate({ scrollTop: newScrollTop }, 500);
   }
 
-  // Mark the question as viewed
   questionProgress[currentQuestionIndex].viewed = true;
   updateQuestionListUI();
+  updateBookmarkButtonUI(questionProgress[currentQuestionIndex].bookmarked);
 
   startTimer();
   renderMathJax();
 }
 
-// Event Listener for Submit Answer Button
-$('#submit-answer-button').click(function () {
+// --- Event Handlers ---
+$submitAnswerButton.click(function () {
   stopTimer();
   $(this).prop('disabled', true);
   $('.option').addClass('disabled');
-  $('#answer-input-field').prop('disabled', true);
+  $answerInputField.prop('disabled', true);
 
   const currentQuestion = questions[currentQuestionIndex];
   let isCorrect = false;
 
-  // Add audio elements for correct and wrong answers
-  const correctSound = new Audio('correct.mp3');
-  const wrongSound = new Audio('wrong.mp3');
-
   if (currentQuestion.type === 'mcq') {
-    const selected = $('.option.selected').data('identifier');
-    const correctOptions = currentQuestion.question.correct_options;
+      const selected = $('.option.selected').data('identifier');
+      const correctOptions = currentQuestion.question.correct_options;
 
-    $('.option').each(function () {
-      const optIdentifier = $(this).data('identifier');
-      if (correctOptions.includes(optIdentifier)) {
-        $(this).addClass('correct');
+      $('.option').each(function () {
+          const optIdentifier = $(this).data('identifier');
+          if (correctOptions.includes(optIdentifier)) {
+              $(this).addClass('correct');
+          }
+      });
+
+      isCorrect = correctOptions.includes(selected);
+      if (isCorrect) {
+          correctSound.play();
+          $('.option.selected').addClass('correct');
+          $explanation.html(`
+              <div class="card card-success">
+                  <i class="fas fa-check mr-2"></i>
+                  <strong>Correct!</strong><br>
+                  ${renderContent(currentQuestion.question.explanation)}
+              </div>
+          `);
+          score++;
+      } else {
+          wrongSound.play();
+          $('.option.selected').addClass('incorrect');
+          $explanation.html(`
+              <div class="card card-error">
+                   <i class="fas fa-times mr-2"></i>
+                  <strong>Incorrect!</strong><br><br>
+                  ${renderContent(currentQuestion.question.explanation)}
+              </div>
+          `);
       }
-    });
 
-    isCorrect = correctOptions.includes(selected);
-    if (isCorrect) {
-      correctSound.play();
-      $('.option.selected').addClass('correct');
-      $('#explanation').html(`
-                <div class="card card-success">
-                    <i class="fas fa-check mr-2"></i>
-                    <strong>Correct!</strong><br>
-                    ${renderContent(currentQuestion.question.explanation)}
-                </div>
-            `);
-      score++;
-    } else {
-      wrongSound.play();
-      $('.option.selected').addClass('incorrect');
-      $('#explanation').html(`
-                <div class="card card-error">
-                     <i class="fas fa-times mr-2"></i>
-                    <strong>Incorrect!</strong><br><br>
-                    ${renderContent(currentQuestion.question.explanation)}
-                </div>
-            `);
-    }
-
-    // Store user's answer
-    questionProgress[currentQuestionIndex].userAnswer = selected;
+      questionProgress[currentQuestionIndex].userAnswer = selected;
   } else if (currentQuestion.type === 'integer') {
-    const userAnswer = $('#answer-input-field').val();
-    const correctAnswer = currentQuestion.question.answer;
+      const userAnswer = $answerInputField.val();
+      const correctAnswer = currentQuestion.question.answer;
 
-    isCorrect = userAnswer === correctAnswer.toString();
+      isCorrect = userAnswer === correctAnswer.toString();
 
-    if (isCorrect) {
-      correctSound.play();
-      $('#explanation').html(`
-                <div class="card card-success">
-                     <i class="fas fa-check mr-2"></i>
-                    <strong>Correct!</strong><br>
-                    ${renderContent(currentQuestion.question.explanation)}
-                </div>
-            `);
-      score++;
-    } else {
-      wrongSound.play();
-      $('#explanation').html(`
-                <div class="card card-error">
-                    <i class="fas fa-times mr-2"></i>
-                    <strong>Incorrect!</strong> The correct answer is ${correctAnswer}<br>
-                    ${renderContent(currentQuestion.question.explanation)}
-                </div>
-            `);
-    }
+      if (isCorrect) {
+          correctSound.play();
+          $explanation.html(`
+              <div class="card card-success">
+                   <i class="fas fa-check mr-2"></i>
+                  <strong>Correct!</strong><br>
+                  ${renderContent(currentQuestion.question.explanation)}
+              </div>
+          `);
+          score++;
+      } else {
+          wrongSound.play();
+          $explanation.html(`
+              <div class="card card-error">
+                  <i class="fas fa-times mr-2"></i>
+                  <strong>Incorrect!</strong> The correct answer is ${correctAnswer}<br>
+                  ${renderContent(currentQuestion.question.explanation)}
+              </div>
+          `);
+      }
 
-    // Store user's answer
-    questionProgress[currentQuestionIndex].userAnswer = userAnswer;
+      questionProgress[currentQuestionIndex].userAnswer = userAnswer;
   }
 
-  // Update question progress
   questionProgress[currentQuestionIndex].answered = true;
   questionProgress[currentQuestionIndex].correct = isCorrect;
   updateQuestionListUI();
-  $('#score').text(score);
+  $score.text(score);
 
-  // Always enable next button after checking
-  $('#next-question-button').prop(
-    'disabled',
-    currentQuestionIndex === questions.length - 1
+  $nextQuestionButton.prop(
+      'disabled',
+      currentQuestionIndex === questions.length - 1
   );
 
-  // Hide check answer button after first use
   $(this).hide();
   if (currentQuestionIndex === questions.length - 1) {
-    $('#reset-quiz-button').show();
+      $resetQuizButton.show();
   }
 
-  // Save progress to session storage
-  saveSessionStorageData(subject,chapter,topic,questionProgress);
-
+  savelocalStorageData(subject, chapter, topic, questionProgress);
 
   renderMathJax();
 });
 
-// Function to fetch questions
-function fetchQuestions() {
-  $('#subject-container').hide();
-  $('#topic-container').hide();
-  $('#question-container').show();
-  $('#question-sidebar').show();
-  showQuestionSkeletons();
-  const cacheKey = `${subject}-${chapter}-${topic}-questions`;
-
-  if (sessionCache[cacheKey]) {
-    questions = sessionCache[cacheKey];
-    renderQuestions();
-    return;
-  }
-
-  $.get(`${API_BASE}${subject}/${chapter}/${topic}`, data => {
-    sessionCache[cacheKey] = data.questions.reverse();
-    questions = sessionCache[cacheKey];
-    renderQuestions();
-  });
-}
-
-function renderQuestions() {
-  showQuestionSkeletons();
-  $('#subject-container').hide();
-  initQuestionProgress();
-  $('#total-questions-number').text(questions.length);
-  $('#question-container').show();
-
-  renderQuestion();
-  $('#topic-container').hide();
-  $('#question-sidebar').show();
-}
-
-// Event Listener for subject button clicks
 $(document).on('click', '.subject-card', function () {
   subject = $(this).data('subject');
   chapter = '';
   topic = '';
   currentQuestionIndex = 0;
-    clearSessionCache();
   updateURLParams({ subject });
   hideQuestionContainer();
   fetchChapters();
 });
 
-// Event Listener for chapter button clicks
 $(document).on('click', '.chapter', function () {
   chapter = $(this).data('chapter');
   topic = '';
   currentQuestionIndex = 0;
-    clearSessionCache();
   updateURLParams({ subject, chapter });
   fetchTopics();
   hideQuestionContainer();
 });
 
-// Event Listener for topic button clicks
 $(document).on('click', '.topic', function () {
   topic = $(this).data('topic');
   currentQuestionIndex = 0;
-    clearSessionCache();
   updateURLParams({
-    subject,
-    chapter,
-    topic,
-    'question-number': currentQuestionIndex + 1,
+      subject,
+      chapter,
+      topic,
+      'question-number': currentQuestionIndex + 1,
   });
   fetchQuestions();
-  // hideQuestionContainer();
 });
 
-// Event Listener for answer option clicks
 $(document).on('click', '.option', function () {
   if (!$(this).hasClass('disabled')) {
-    $('.option').removeClass('selected');
-    $(this).addClass('selected');
-    $('#submit-answer-button').show();
+      $('.option').removeClass('selected');
+      $(this).addClass('selected');
+      $submitAnswerButton.show();
   }
 });
-// Event listener for previous question button
-$('#previous-question-button').click(function () {
+
+$previousQuestionButton.click(function () {
   if (currentQuestionIndex > 0) {
-    currentQuestionIndex--;
-    updateURLParams({
-      subject,
-      chapter,
-      topic,
-      'question-number': currentQuestionIndex + 1,
-    });
-    renderQuestion();
+      currentQuestionIndex--;
+      updateURLParams({
+          subject,
+          chapter,
+          topic,
+          'question-number': currentQuestionIndex + 1,
+      });
+      renderQuestion();
   }
 });
 
-// Event listener for next question button
-$('#next-question-button').click(function () {
+$nextQuestionButton.click(function () {
   if (currentQuestionIndex < questions.length - 1) {
-    currentQuestionIndex++;
-    updateURLParams({
-      subject,
-      chapter,
-      topic,
-      'question-number': currentQuestionIndex + 1,
-    });
-    renderQuestion();
-    stopTimer();
-    startTimer();
+      currentQuestionIndex++;
+      updateURLParams({
+          subject,
+          chapter,
+          topic,
+          'question-number': currentQuestionIndex + 1,
+      });
+      renderQuestion();
+      stopTimer();
+      startTimer();
   }
 });
 
-// Back navigation buttons
-$('#back-to-subjects').click(function () {
-  $('#chapter-container').hide();
-  $('#subject-container').show();
+$backToSubjects.click(function () {
+  fetchAndRenderSubjects();
+  updateURLParams({});
+  hideQuestionContainer();
+  $chapterContainer.hide();
+  $topicContainer.hide();
+  $subjectContainer.show();
 });
 
-$('#back-to-chapters').click(function () {
-  $('#topic-container').hide();
-  $('#chapter-container').show();
+$backToChapters.click(function () {
+  updateURLParams({ subject });
+  fetchChapters();
+  hideQuestionContainer();
+  $topicContainer.hide();
+  $chapterContainer.show();
 });
 
-// Function to update the breadcrumb
+// --- Breadcrumb Functions ---
 function updateBreadcrumb() {
-  if (subject === '') {
-    $('#breadcrumb-subj').hide();
-  } else {
-    $('#breadcrumb-subj').show();
-    $('#breadcrumb-subject').text(subject.replace(/-/g, ' ')).toggle(Boolean(subject));
-  }
+  $breadcrumbSubj.toggle(Boolean(subject));
+  $breadcrumbChap.toggle(Boolean(chapter));
+  $breadcrumbTopi.toggle(Boolean(topic));
 
-  if (chapter === '') {
-    $('#breadcrumb-chap').hide();
-  } else {
-    $('#breadcrumb-chap').show();
-    $('#breadcrumb-chapter').text(chapter.replace(/-/g, ' ')).toggle(Boolean(chapter));
-  }
-
-  if (topic === '') {
-    $('#breadcrumb-topi').hide();
-  } else {
-    $('#breadcrumb-topi').show();
-    $('#breadcrumb-topic').text(topic.replace(/-/g, ' ')).toggle(Boolean(topic));
-  }
+  $breadcrumbSubject.text(subject.replace(/-/g, ' '));
+  $breadcrumbChapter.text(chapter.replace(/-/g, ' '));
+  $breadcrumbTopic.text(topic.replace(/-/g, ' '));
 }
 
-// Function to hide question container
+// --- UI Helper Functions ---
 function hideQuestionContainer() {
-  $('#question-container').hide();
-  $('#question-sidebar').hide();
+  $questionContainer.hide();
+  $questionSidebar.hide();
 }
 
-// Breadcrumb navigation
-$('#breadcrumb-home').click(function () {
+// --- Breadcrumb Navigation ---
+$breadcrumbHome.click(function () {
   subject = '';
   chapter = '';
   topic = '';
   currentQuestionIndex = 0;
+  fetchAndRenderSubjects();
   updateURLParams({});
   hideQuestionContainer();
-  $('#chapter-container').hide();
-  $('#topic-container').hide();
-  $('#subject-container').show();
+  $chapterContainer.hide();
+  $topicContainer.hide();
+  $subjectContainer.show();
 });
 
-$('#breadcrumb-subject').click(function () {
+$breadcrumbSubject.click(function () {
   chapter = '';
   topic = '';
   currentQuestionIndex = 0;
   updateURLParams({ subject });
   fetchChapters();
   hideQuestionContainer();
-  $('#topic-container').hide();
-  $('#chapter-container').show();
+  $topicContainer.hide();
+  $chapterContainer.show();
 });
 
-$('#breadcrumb-chapter').click(function () {
+$breadcrumbChapter.click(function () {
   topic = '';
   currentQuestionIndex = 0;
   fetchTopics();
   updateURLParams({ subject, chapter });
   hideQuestionContainer();
-  $('#topic-container').show();
+  $topicContainer.show();
 });
 
-$('#breadcrumb-topic').click(function () {
+$breadcrumbTopic.click(function () {
   currentQuestionIndex = 0;
   fetchQuestions();
   updateURLParams({
-  subject,
-  chapter,
-  topic,
-  'question-number': currentQuestionIndex + 1,
+      subject,
+      chapter,
+      topic,
+      'question-number': currentQuestionIndex + 1,
   });
   hideQuestionContainer();
-  $('#question-container').show();
-  $('#question-sidebar').show();
+  $questionContainer.show();
+  $questionSidebar.show();
 });
 
+// --- Initialization ---
 $(document).ready(() => {
-    fetchAndRenderSubjects();
 
   if (subject) {
-    if (chapter) {
-      if (topic) {
-          fetchQuestions();
+      if (chapter) {
+          if (topic) {
+              fetchQuestions();
+          } else {
+              fetchTopics();
+          }
       } else {
-        fetchTopics();
+          fetchChapters();
       }
-    } else {
-      fetchChapters();
-    }
+  } else {
+      // fetchAndRenderImage();
+      fetchAndRenderSubjects();
   }
 });
 
-// Dark Mode Toggle
-document.getElementById('dark-mode-toggle').addEventListener('click', () => {
-  const body = document.body;
-  const toggle = document.getElementById('dark-mode-toggle');
-  const html = document.querySelector('html');
-
+// --- Dark Mode Toggle ---
+$darkModeToggle.on('click', () => {
   isDarkMode = !isDarkMode;
 
   if (isDarkMode) {
-    html.classList.add('dark');
-    document.documentElement.setAttribute('data-theme', 'dark');
-    toggle.innerHTML = '<i class="fas fa-sun"></i>';
-    localStorage.setItem('darkMode', 'enabled');
+      $html.addClass('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+      $darkModeToggle.html('<i class="fas fa-sun"></i>');
+      localStorage.setItem('darkMode', 'enabled');
   } else {
-    html.classList.remove('dark');
-    document.documentElement.setAttribute('data-theme', 'light');
-    toggle.innerHTML = '<i class="fas fa-moon"></i>';
-    localStorage.setItem('darkMode', 'disabled');
+      $html.removeClass('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+      $darkModeToggle.html('<i class="fas fa-moon"></i>');
+      localStorage.setItem('darkMode', 'disabled');
   }
 });
 
 function setInitialTheme() {
-  const toggle = document.getElementById('dark-mode-toggle');
-  const html = document.querySelector('html');
-
   if (isDarkMode) {
-    html.classList.add('dark');
-    document.documentElement.setAttribute('data-theme', 'dark');
-    toggle.innerHTML = '<i class="fas fa-sun"></i>';
-    localStorage.setItem('darkMode', 'enabled');
+      $html.addClass('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+      $darkModeToggle.html('<i class="fas fa-sun"></i>');
   } else {
-    html.classList.remove('dark');
-    document.documentElement.setAttribute('data-theme', 'light');
-    toggle.innerHTML = '<i class="fas fa-moon"></i>';
-    localStorage.setItem('darkMode', 'disabled');
+      $html.removeClass('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+      $darkModeToggle.html('<i class="fas fa-moon"></i>');
   }
 }
 
-// Reset Quiz Button
-$('#reset-quiz-button').click(function () {
-    fetchQuestions();
+// --- Reset Quiz Button ---
+$resetQuizButton.click(function () {
+  fetchQuestions();
 });
 
-
-// Listen for custom event, it is created in utils.js
+// --- URL Change Listener ---
 window.addEventListener('urlchanged', () => {
-    updateBreadcrumb();
-})
+  updateBreadcrumb();
+});
+
+// --- Bookmark Functionality ---
+function updateBookmarkButtonUI(isBookmarked) {
+  if (isBookmarked) {
+      $bookmarkButton.html('<i class="fas fa-bookmark text-yellow-500"></i><p class="bookmark-text"> Unbookmark</p>');
+  } else {
+      $bookmarkButton.html('<i class="far fa-bookmark"></i><p class="bookmark-text"> Bookmark</p>');
+  }
+}
+
+$bookmarkButton.click(function () {
+  const index = currentQuestionIndex;
+  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestionProgress = questionProgress[currentQuestionIndex];
+
+  if (!currentQuestionProgress.bookmarked) {
+      saveBookmarkedQuestion(subject, chapter, topic, index, currentQuestion, currentQuestionProgress);
+  } else {
+      removeBookmarkedQuestion(subject, chapter, topic, index);
+  }
+
+  questionProgress[index].bookmarked = !questionProgress[index].bookmarked;
+  savelocalStorageData(subject, chapter, topic, questionProgress);
+  updateQuestionListUI();
+  updateBookmarkButtonUI(questionProgress[index].bookmarked);
+});

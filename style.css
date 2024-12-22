@@ -1,221 +1,454 @@
-/* General Styles */
+/* Universal Box Sizing */
 * {
-    box-sizing: border-box;
-  }
-  
-  /* Theme Toggle Styles */
-  .theme-toggle {
-    background: transparent;
-    border: none;
-    transition: color 0.3s ease;
-    max-width: fit-content;
+  box-sizing: border-box;
+}
+
+/* Button Styles */
+.btn {
+  height: auto !important;
+  padding: 0.5rem !important;
+}
+
+/* Option Styles */
+.option {
+  display: block !important;
+  padding-left: 20px !important;
+}
+
+/* Bookmark Button */
+#bookmark-button {
+  padding-inline: 0.75rem !important;
+}
+
+/* Timer Icon */
+.timer-container i {
+  font-size: large;
+}
+
+/* Mobile Navigation - Hidden by Default */
+.bottom-mobile-nav {
+  display: none;
+}
+
+/* Top Mobile Navigation - Hidden by Default */
+.top-mobile-nav {
+  display: none;
+}
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 768px) {
+  /* Remove or Adjust Existing Padding Override */
+  /* .app-container {
+    padding: 0 !important;
+  } */
+
+  main {
+    margin-bottom: 4rem;
   }
 
-  img, video {
-    width: -webkit-fill-available;
-    width: -moz-available;
-}
-  
-  /* Question Container Styles */
-  
-  .question-content {
-    margin-bottom: 18px;
-    transition: background-color 0.3s ease;
+  .navigation {
+    margin-top: 3.3rem;
   }
-  
-  .answer-options {
-    transition: background-color 0.3s ease;
+
+  /* Add Padding to Prevent Content Overlap */
+  .app-container {
+    padding-top: 70px; /* Height of the top navigation bar */
+    padding-bottom: 70px; /* Height of the bottom navigation bar */
+    padding-left: 10px; /* Optional: Horizontal Padding */
+    padding-right: 10px; /* Optional: Horizontal Padding */
+    overflow-y: auto; /* Enable Vertical Scrolling */
+    height: calc(100vh - 140px); /* Adjust Height Based on Navigation Bars */
+    box-sizing: border-box; /* Ensure Padding is Included in Height */
   }
-  
-  .option {
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    text-align: left;
-    font-size: 1.1em;
-    border-radius: 10px;
+
+  /* Ensure Navigation Bars are Above Content */
+  .top-mobile-nav,
+  .bottom-mobile-nav {
+    z-index: 1001; /* Higher than main content */
   }
-  
-  .option.selected {
-    border-color: #bb00ff;
-    color: #bb00ff;
+
+  /* Use CSS Variables for Navigation Heights */
+  :root {
+    --top-nav-height: 70px;
+    --bottom-nav-height: 70px;
   }
-  
-  .option.correct {
-    color: #38a53d;
-    border-color: #38a53d;
+
+  /* Adjust Top Mobile Navigation */
+  .top-mobile-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    height: var(--top-nav-height);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1001; /* Ensure it stays above other elements */
+    padding-top: env(safe-area-inset-top); /* Safe Area for Notched Devices */
+    padding-bottom: 10px; /* Additional Padding if Needed */
   }
-  
-  .option.incorrect {
-    border-color: #b71c1c;
-    color: #b71c1c;
+
+  /* Adjust Bottom Mobile Navigation */
+  .bottom-mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f8f9fa;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    height: var(--bottom-nav-height);
+    z-index: 1001; /* Ensure it stays above other elements */
+    padding-bottom: env(safe-area-inset-bottom); /* Safe Area for Notched Devices */
   }
-  
-  #integer-input-container {
-    margin-bottom: 15px;
+
+  /* Adjust App Container for Safe Areas */
+  .app-container {
+    padding-top: calc(var(--top-nav-height) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
   }
-  
-  #answer-input-field {
-    margin: 10px 0;
-    font-size: 1.1em;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+
+  /* Retain Existing Mobile Styles */
+  .p-6 {
+    padding: 1rem !important;
+  }
+  .p-5 {
+    padding: 0.75rem !important;
+  }
+  .p-4 {
+    padding: 0.5rem !important;
+  }
+  aside {
+    margin-bottom: 0 !important;
+  }
+  .border {
+    border: 0 !important;
   }
   .feedback {
-    padding: 15px;
-    border-radius: 10px;
+    padding: 7.5px !important;
   }
-  
-  .hidden {
+
+  /* Navigation Hover Effects */
+  #breadcrumb-topic:hover,
+  #breadcrumb-chapter:hover,
+  #breadcrumb-subject:hover {
+    transform: scale(1.05); /* Slightly Enlarge on Hover */
+  }
+
+  /* Navigation Buttons Margin */
+  .navigation-buttons {
+    margin: 1.25rem !important;
+  }
+
+  /* Remove Border Radius for Header, Sections, and Rounded Elements */
+  header,
+  section,
+  .rounded-xl {
+    border-radius: 0 !important;
+  }
+
+  /* Responsive Heading */
+  h2 {
+    white-space: nowrap; /* Prevent Text Wrapping */
+    overflow: visible; /* Ensure Overflow is Visible */
+    font-size: calc(1rem + 2vw); /* Responsive Font Size */
+    width: 100%; /* Full Width */
+    display: inline-block; /* Allow Inline Resizing */
+  }
+
+  /* Question List Container Margin */
+  #question-list-container {
+    margin-left: 0.5rem;
+  }
+
+  /* Hide Bookmark Text */
+  .bookmark-text {
+    display: none;
+  }
+
+  /* Top Mobile Navigation Adjustments */
+  .top-mobile-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    z-index: 1001;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Page Header and Footer Hidden on Mobile */
+  header,
+  footer {
     display: none !important;
   }
-  
-  #paper-title {
-    font-weight: 600;
-    margin-bottom: 18px;
-  }
-  
-  .MathJax {
-    display: inline !important;
-  }
-  
-  /* Question List Sidebar */
-  
-  .question-item {
+
+  /* Mobile Navigation Items */
+  .bottom-mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f8f9fa;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
     padding: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    z-index: 1001; /* Ensure it stays above other elements */
+  }
+
+  .bottom-mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #6a7aea;
+    text-decoration: none;
+    font-size: 0.8rem;
+  }
+
+  .bottom-mobile-nav-item i {
+    font-size: 1.2rem;
     margin-bottom: 5px;
-    margin-right: 5px;
-    min-width: 80px;
-    white-space: nowrap;
-    text-align: center;
   }
-  
-  .question-item.active {
-    color: #388e3c;
-  }
-  
-  .question-item.correct-item {
-    color: #1b5e20;
-  }
-  
-  .question-item.incorrect-item {
-    color: #b71c1c;
-  }
-  
-  .question-item i {
-    margin-left: 5px;
-    font-size: 18px;
-  }
-  /* Timer and Progress */
-  
-  /* Submit Button */
-  #submit-answer-button {
-    width: auto;
-    font-size: 1.2em;
-    font-weight: 600;
-  
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  }
-  
-  /* PC specific Question List */
-  @media (min-width: 1024px) {
-    .app-container {
-      display: grid;
-      grid-template-columns: 4fr 1fr; /* Main content takes up 4/5 of the width and the sidebar takes up 1/5*/
-    }
-  
-    #question-sidebar {
-      position: sticky;
-      top: 1rem;
-      max-height: calc(100vh - 5rem);
-      overflow-y: auto;
-      overflow-x: hidden;
-      margin-bottom: 0;
-      width: 30vw;
-      /* display: block !important; */
-    }
 
-    .content-area{
-      width: 65vw;
-    }
-  
-    .app-container > main {
-      display: flex;
-      flex-direction: row-reverse;
-    }
-  
-    #question-list-container {
-      flex-wrap: wrap;
-    }
-
-    /* make answer option in grid for pc in 2x2 */
-    .answer-options {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
+  .bottom-mobile-nav-item.active {
+    color: #4649dd;
   }
-  
-  .subject-card {
+
+  /* Top Mobile Navigation Styles */
+  .top-mobile-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #f8f9fa;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  }
-  
-  .subject-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  }
-  
-  .subject-card .icon-container {
-    border-radius: 50%;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-  }
-
-  .card{
-    display: flow;
-    overflow-x: auto;
-  }
-
-  .card-error,
-  .card-success {
     padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    line-height: 2;
+    z-index: 1001; /* Higher than main content */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
 
-.option{
+  /* Ensure Safe Areas for Notched Devices */
+  .app-container {
+    padding-top: calc(var(--top-nav-height) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: transparent;
+  border: none;
+  transition: color 0.3s ease;
+  max-width: fit-content;
+}
+
+/* Image and Video Styles */
+img,
+video {
+  width: -webkit-fill-available;
+  width: -moz-available;
+  border-radius: 10px;
+}
+
+img:hover {
+  transform: scale(1.025);
+}
+
+/* Question Content */
+.question-content {
+  margin-bottom: 18px;
+  transition: background-color 0.3s ease;
+}
+
+/* Answer Options */
+.answer-options {
+  transition: background-color 0.3s ease;
+}
+
+/* Option States */
+.option.selected {
+  border-color: #bb00ff !important;
+  color: #bb00ff !important;
+}
+
+.option.correct {
+  color: #38a53d !important;
+  border-color: #38a53d !important;
+}
+
+.option.incorrect {
+  border-color: #b71c1c !important;
+  color: #b71c1c !important;
+}
+
+/* Integer Input Container */
+#integer-input-container {
+  margin-bottom: 15px;
+}
+
+/* Answer Input Field */
+#answer-input-field {
+  margin: 10px 0;
+  font-size: 1.1em;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Feedback Section */
+.feedback {
+  padding: 15px;
+  border-radius: 10px;
+}
+
+/* Hidden Elements */
+.hidden {
+  display: none !important;
+}
+
+/* Paper Title */
+#paper-title {
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+/* MathJax Inline Display */
+.MathJax {
+  display: inline !important;
+}
+
+/* Question Item Styles */
+.question-item {
   padding: 10px;
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  text-align: left;
-  font-size: 1.1em;
+  margin-bottom: 5px;
+  margin-right: 5px;
+  min-width: 80px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.question-item.active {
+  color: #388e3c;
+}
+
+.question-item.correct-item {
+  color: #1b5e20;
+}
+
+.question-item.incorrect-item {
+  color: #b71c1c;
+}
+
+.question-item i {
+  margin-left: 5px;
+  font-size: 18px;
+}
+
+/* Submit Answer Button */
+#submit-answer-button {
+  width: auto;
+  font-size: 1.2em;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Media Queries for Large Screens */
+@media (min-width: 1024px) {
+  .app-container {
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+  }
+
+  #question-sidebar {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 0;
+    width: 30vw;
+  }
+
+  .content-area {
+    width: 65vw;
+  }
+
+  .app-container > main {
+    display: flex;
+    flex-direction: row-reverse;
+  }
+
+  #question-list-container {
+    flex-wrap: wrap;
+  }
+
+  .answer-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+/* Subject Card Styles */
+.subject-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.subject-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.subject-card .icon-container {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+/* Card Styles */
+.card {
+  display: flow;
+  overflow-x: auto;
+}
+
+.card-error,
+.card-success {
+  padding: 10px;
   border-radius: 10px;
   margin-bottom: 10px;
-  height: auto;
+  line-height: 2;
 }
 
 mjx-container mjx-math {
-  line-height: .5;
+  line-height: 0.5;
   white-space: normal;
 }
 
-
-/* Add these styles to your existing CSS */
-
+/* Shimmer Animation for Skeleton Loading */
 @keyframes shimmer {
   0% {
     background-position: -468px 0;
@@ -225,6 +458,7 @@ mjx-container mjx-math {
   }
 }
 
+/* Skeleton Styles */
 .skeleton {
   background: #f6f7f8;
   background-image: linear-gradient(
@@ -234,8 +468,6 @@ mjx-container mjx-math {
     #f6f7f8 40%,
     #f6f7f8 100%
   );
-  /* background-repeat: no-repeat;
-  background-size: 800px 100%; */
   animation: shimmer 1.5s infinite linear;
 }
 
@@ -264,7 +496,27 @@ mjx-container mjx-math {
   margin-bottom: 0.75rem;
 }
 
-/* Dark mode skeletons */
+.skeleton-sidebar {
+  height: 100%;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: #f6f7f8;
+  background-image: linear-gradient(
+    to right,
+    #f6f7f8 0%,
+    #cfcece 20%,
+    #f6f7f8 40%,
+    #f6f7f8 100%
+  );
+  animation: shimmer 1.5s infinite linear;
+}
+
 .dark .skeleton {
   background: #2d3748;
   background-image: linear-gradient(
@@ -276,9 +528,10 @@ mjx-container mjx-math {
   );
 }
 
-.breadcrumbs>ol>li+:before, .breadcrumbs>ul>li+:before{
+/* Breadcrumbs Styles */
+.breadcrumbs > ol > li + :before,
+.breadcrumbs > ul > li + :before {
   opacity: 1;
-  border-top: 3px solid;
-  border-right: 3px solid;
+  border-top: 2px solid;
+  border-right: 2px solid;
 }
-
