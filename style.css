@@ -37,28 +37,13 @@
 
 /* Media Queries for Mobile Devices */
 @media (max-width: 768px) {
-  /* Remove or Adjust Existing Padding Override */
-  /* .app-container {
-    padding: 0 !important;
-  } */
 
   main {
     margin-bottom: 4rem;
   }
 
   .navigation {
-    margin-top: 3.3rem;
-  }
-
-  /* Add Padding to Prevent Content Overlap */
-  .app-container {
-    padding-top: 70px; /* Height of the top navigation bar */
-    padding-bottom: 70px; /* Height of the bottom navigation bar */
-    padding-left: 10px; /* Optional: Horizontal Padding */
-    padding-right: 10px; /* Optional: Horizontal Padding */
-    overflow-y: auto; /* Enable Vertical Scrolling */
-    height: calc(100vh - 140px); /* Adjust Height Based on Navigation Bars */
-    box-sizing: border-box; /* Ensure Padding is Included in Height */
+    margin-top: 4rem;
   }
 
   /* Ensure Navigation Bars are Above Content */
@@ -244,6 +229,14 @@
     padding-top: calc(var(--top-nav-height) + env(safe-area-inset-top));
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
   }
+
+    /* Add Padding to Prevent Content Overlap */
+    .app-container {
+      padding: 0 !important;
+      overflow-y: auto; /* Enable Vertical Scrolling */
+      height: calc(100vh - 140px); /* Adjust Height Based on Navigation Bars */
+      box-sizing: border-box; /* Ensure Padding is Included in Height */
+    }
 }
 
 /* Theme Toggle Button */
