@@ -259,34 +259,51 @@
           <b></b>
         </p>
       </footer>
-      <!-- Add this just before the closing </body> tag -->
-<div class="bottom-mobile-nav dark:bg-black">
-  <a href="#" class="bottom-mobile-nav-item active dark:text-white" data-section="pyq">
+  
+  <div class="bottom-mobile-nav dark:bg-black">
+    <a href="#" class="bottom-mobile-nav-item active dark:text-white hover:scale-105" data-section="pyq">
     <i class="fas fa-file-alt"></i>
     PYQs
-  </a>
-  <a href="#" class="bottom-mobile-nav-item dark:text-white" data-section="bookmarks">
+    </a>
+    <a href="#" class="bottom-mobile-nav-item dark:text-white hover:scale-105" data-section="bookmarks">
     <i class="fas fa-bookmark"></i>
     Bookmarks
-  </a>
-  <a href="#" class="bottom-mobile-nav-item dark:text-white" data-section="progress">
+    </a>
+    <a href="#" class="bottom-mobile-nav-item dark:text-white hover:scale-105" data-section="progress">
     <i class="fas fa-chart-line"></i>
     Progress
-  </a>
-  <a href="#" class="bottom-mobile-nav-item dark:text-white" data-section="settings">
+    </a>
+    <a href="#" class="bottom-mobile-nav-item dark:text-white hover:scale-105" data-section="settings">
     <i class="fas fa-cog"></i>
     Settings
-  </a>
+    </a>
 </div>
 
 <div class="top-mobile-nav dark:bg-black">
-  <button id="mobile-menu-toggle" class="btn btn-ghost">
+<button id="mobile-menu-toggle" class="btn btn-ghost">
     <i class="fas fa-bars"></i>
-  </button>
-  <h1>ηovatra</h1>
-  <button id="dark-mode-toggle" class="theme-toggle text-2xl cursor-pointer text-primary-900 transition-transform duration-200 hover:scale-110 dark:text-gray-100" aria-label="Toggle dark mode">
+</button>
+<h1>ηovatra</h1>
+<button id="dark-mode-toggle" class="theme-toggle text-2xl cursor-pointer text-primary-900 transition-transform duration-200 hover:scale-110 dark:text-gray-100" aria-label="Toggle dark mode">
     <i class="fas fa-moon"></i>
-  </button>
+</button>
+</div>
+
+<!-- Alert Modal for Development -->
+<dialog id="devAlertModal" class="modal">
+<div class="modal-box">
+    <h3 class="font-bold text-lg">Under Development</h3>
+    <p class="py-4">
+    This feature is currently being developed. Please check back in <span id="devAlertTimer">5</span> seconds.
+    </p>
+    <div class="progress-bar-container mb-4">
+        <div class="progress-bar"></div>
+    </div>
+</div>
+<form method="dialog" class="modal-backdrop">
+    <button>close</button>
+</form>
+</dialog>
 </div>
     </div>
     <script defer src="script.js" type="module"></script>
@@ -295,16 +312,16 @@
     <!-- <script defer src="blocker.js"></script> -->
      <script>
       document.addEventListener('DOMContentLoaded', () => {
-  const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+  const mobileNavItems = document.querySelectorAll('.bottom-mobile-nav-item');
   const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
 
   // Mobile Navigation Handler
   mobileNavItems.forEach(item => {
     item.addEventListener('click', (e) => {
-      mobileNavItems.forEach(nav => nav.classList.remove('active'));
-      e.currentTarget.classList.add('active');
+      // mobileNavItems.forEach(nav => nav.classList.remove('active'));
+      // e.currentTarget.classList.add('active');
       
-      const section = e.currentTarget.dataset.section;
+      // const section = e.currentTarget.dataset.section;
       handleMobileNavigation(section);
     });
   });
@@ -318,15 +335,19 @@
     switch(section) {
       case 'pyq':
         // Show PYQ content
+        // current main page is PYQ page
         break;
       case 'bookmarks':
         // Show bookmarks
+        alert('This feature is currently under development.');
         break;
       case 'progress':
         // Show progress
+        alert('This feature is currently under development.');
         break;
       case 'settings':
         // Show settings
+        alert('This feature is currently under development.');
         break;
     }
   }
