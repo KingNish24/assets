@@ -435,7 +435,7 @@ function renderQuestion() {
 
   if (currentQuestion.question_type === 'mcq') {
       // const optionjson = JSON.parse(currentQuestion.options.replace(/'/g, "'"));
-      const optionjson = eval(currentQuestion.options.replace(/(\w+):/g, '"$1":'));
+      const optionjson = eval(currentQuestion.options);
       console.log(optionjson)
 
       const options = optionjson.map(opt => {
