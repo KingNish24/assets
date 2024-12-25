@@ -12,7 +12,7 @@ import {
 } from './utils.js';
 
 // Constants
-const API_BASE = 'https://qapi-xbw7.onrender.com/';
+const API_BASE = 'https://qpump-qpump-api.hf.space/';
 const SKELETON_COUNT = 9;
 
 // DOM element cache
@@ -241,10 +241,10 @@ function renderChapters(data) {
 
   data.chapters.forEach(ch => {
       $chapters.append(`
-      <button class="btn chapter w-100 p-3 rounded-2xl shadow-sm transition-transform duration-300 hover:scale-105 dark:border-slate-700" data-chapter="${ch.name}">
+      <button class="btn chapter w-100 p-3 rounded-2xl shadow-sm transition-transform duration-300 hover:scale-105 dark:border-slate-700" data-chapter="${ch.chapter}">
         <div class="d-flex justify-content-center align-items-center">
-          <p class="mb-0 font-weight-bold chapter-title font-bold capitalize chapter">${ch.name.replace(/-/g, ' ')}</p>
-          <p class="mb-0 text-muted question-count text-[0.7rem]">${ch.questionCount} Qs</p>
+          <p class="mb-0 font-weight-bold chapter-title font-bold capitalize chapter">${ch.chapter.replace(/-/g, ' ')}</p>
+          <p class="mb-0 text-muted question-count text-[0.7rem]">${ch.question_count} Qs</p>
         </div>
       </button>
   `);
@@ -273,10 +273,10 @@ function renderTopics(data) {
 
   data.topics.forEach(tp => {
       $topics.append(`
-      <button class="btn topic w-100 p-3 rounded-2xl shadow-sm transition-transform duration-300 hover:scale-105 dark:border-slate-700" data-topic="${tp.name}">
+      <button class="btn topic w-100 p-3 rounded-2xl shadow-sm transition-transform duration-300 hover:scale-105 dark:border-slate-700" data-topic="${tp.topic}">
         <div class="d-flex justify-content-center align-items-center">
-          <p class="mb-0 font-weight-bold topic-title font-bold capitalize">${tp.name.replace(/-/g, ' ')}</p>
-          <p class="mb-0 text-muted question-count text-[0.7rem]">${tp.questionCount} Qs</p>
+          <p class="mb-0 font-weight-bold topic-title font-bold capitalize">${tp.topic.replace(/-/g, ' ')}</p>
+          <p class="mb-0 text-muted question-count text-[0.7rem]">${tp.question_count} Qs</p>
         </div>
       </button>
   `);
@@ -428,26 +428,26 @@ function renderQuestion() {
   $currentQuestionNumber.text(currentQuestionIndex + 1);
   $paperTitle.text(currentQuestion.paperTitle || '');
 
-  $questionContent.html(renderContent(q.content));
+  $questionContent.html(renderContent(q));
   $submitAnswerButton.prop('disabled', false);
   $('.option').removeClass('disabled');
   $answerInputField.prop('disabled', false);
 
-  if (currentQuestion.type === 'mcq') {
-      const options = q.options
-          .map(opt => {
-              const renderedContent = renderContent(opt.content);
-              return `
-              <button class='btn font option dark:border-slate-700 hover:scale-[1.01] active:scale-[0.99]' data-identifier="${opt.identifier}">
-                  ${renderedContent}
-              </button>
-          `;
-          })
-          .join('');
+  if (currentQuestion.question_type === 'mcq') {
+      const optionjson = JSON.parse(currentQuestion.options.replace(/'/g, '"'));
+
+      const options = optionjson.map(opt => {
+        const renderedContent = renderContent(opt.content);
+        return `
+            <button class='btn font option dark:border-slate-700 hover:scale-[1.01] active:scale-[0.99]' data-identifier="${opt.identifier}">
+                ${renderedContent}
+            </button>
+        `;
+    }).join('');
       $answerOptions.html(options);
       $answerInputField.hide();
       $answerOptions.show();
-  } else if (currentQuestion.type === 'integer') {
+  } else if (currentQuestion.question_type === 'integer') {
       $answerOptions.hide();
       $answerInputField
           .show()
@@ -510,9 +510,9 @@ $submitAnswerButton.click(function () {
   const currentQuestion = questions[currentQuestionIndex];
   let isCorrect = false;
 
-  if (currentQuestion.type === 'mcq') {
+  if (currentQuestion.question_type === 'mcq') {
       const selected = $('.option.selected').data('identifier');
-      const correctOptions = currentQuestion.question.correct_options;
+      const correctOptions = currentQuestion.correct_option;
 
       $('.option').each(function () {
           const optIdentifier = $(this).data('identifier');
@@ -529,7 +529,7 @@ $submitAnswerButton.click(function () {
               <div class="card card-success">
                   <i class="fas fa-check mr-2"></i>
                   <strong>Correct!</strong><br>
-                  ${renderContent(currentQuestion.question.explanation)}
+                  ${renderContent(currentQuestion.explanation)}
               </div>
           `);
           score++;
@@ -540,15 +540,15 @@ $submitAnswerButton.click(function () {
               <div class="card card-error">
                    <i class="fas fa-times mr-2"></i>
                   <strong>Incorrect!</strong><br><br>
-                  ${renderContent(currentQuestion.question.explanation)}
+                  ${renderContent(currentQuestion.explanation)}
               </div>
           `);
       }
 
       questionProgress[currentQuestionIndex].userAnswer = selected;
-  } else if (currentQuestion.type === 'integer') {
+  } else if (currentQuestion.question_type === 'integer') {
       const userAnswer = $answerInputField.val();
-      const correctAnswer = currentQuestion.question.answer;
+      const correctAnswer = currentQuestion.answer;
 
       isCorrect = userAnswer === correctAnswer.toString();
 
@@ -558,7 +558,7 @@ $submitAnswerButton.click(function () {
               <div class="card card-success">
                    <i class="fas fa-check mr-2"></i>
                   <strong>Correct!</strong><br>
-                  ${renderContent(currentQuestion.question.explanation)}
+                  ${renderContent(currentQuestion.explanation)}
               </div>
           `);
           score++;
@@ -568,7 +568,7 @@ $submitAnswerButton.click(function () {
               <div class="card card-error">
                   <i class="fas fa-times mr-2"></i>
                   <strong>Incorrect!</strong> The correct answer is ${correctAnswer}<br>
-                  ${renderContent(currentQuestion.question.explanation)}
+                  ${renderContent(currentQuestion.explanation)}
               </div>
           `);
       }
