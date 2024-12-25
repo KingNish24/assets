@@ -14,7 +14,7 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https: 'unsafe-inline'; style-src 'self' https: 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' https: 'unsafe-inline'; style-src 'self' https: 'unsafe-inline';">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <title>ηovatra App</title>
@@ -309,6 +309,7 @@
     <script defer src="script.js" type="module"></script>
     <script defer src="utils.js" type="module"></script>
     <script defer src="onload.js"></script>
+    <script defer src="poll.js"></script>
     <!-- <script defer src="blocker.js"></script> -->
      <script>
       document.addEventListener('DOMContentLoaded', () => {
@@ -321,7 +322,7 @@
       // mobileNavItems.forEach(nav => nav.classList.remove('active'));
       // e.currentTarget.classList.add('active');
       
-      // const section = e.currentTarget.dataset.section;
+      const section = e.currentTarget.dataset.section;
       handleMobileNavigation(section);
     });
   });
