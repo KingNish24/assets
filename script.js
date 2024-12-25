@@ -44,7 +44,7 @@ const $breadcrumbChap = $('#breadcrumb-chap');
 const $breadcrumbTopi = $('#breadcrumb-topi');
 const $breadcrumbSubject = $('#breadcrumb-subject');
 const $breadcrumbChapter = $('#breadcrumb-chapter');
-const $breadcrumbTopic = $('#breadcrumbTopic');
+const $breadcrumbTopic = $('#breadcrumb-topic');
 const $darkModeToggle = $('.theme-toggle');
 const $html = $('html');
 const $body = $('body');
@@ -426,7 +426,7 @@ function renderQuestion() {
   $resetQuizButton.hide();
 
   $currentQuestionNumber.text(currentQuestionIndex + 1);
-  $paperTitle.text(currentQuestion.paperTitle || '');
+  $paperTitle.text(currentQuestion.paper_id.replace(/-/g, ' ')|| '');
 
   $questionContent.html(renderContent(q));
   $submitAnswerButton.prop('disabled', false);

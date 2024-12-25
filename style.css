@@ -267,6 +267,7 @@ img:hover {
 
 /* Paper Title */
 #paper-title {
+  text-transform: capitalize;
   font-weight: 600;
   margin-bottom: 18px;
 }
