@@ -4,10 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' https: 'unsafe-inline'; style-src 'self' https: 'unsafe-inline';"> -->
+
+    <!-- Preload and Prefetch Critical Resources -->
+    <link rel="preload" href="style.css" as="style">
+    <link rel="preload" href="https://cdn.tailwindcss.com/3.4.16" as="script">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/daisyui@5.0.0-alpha.51/daisyui.css" as="style">
+    <link rel="preload" href="https://code.jquery.com/jquery-3.6.0.min.js" as="script">
+
     <!-- Critical CSS and Styles - Load First -->
+    <link href="style.css" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com/3.4.16"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link href="style.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5.0.0-alpha.51/daisyui.css" rel="stylesheet" type="text/css" />
 
     <link rel="preconnect" href="https://qpump-qpump-api.hf.space">

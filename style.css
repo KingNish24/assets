@@ -398,7 +398,7 @@ mjx-container mjx-math {
   white-space: normal;
 }
 
-/* Shimmer Animation for Skeleton Loading */
+/* Shimmer Animation for skeletons Loading */
 @keyframes shimmer {
   0% {
     background-position: -468px 0;
@@ -408,8 +408,8 @@ mjx-container mjx-math {
   }
 }
 
-/* Skeleton Styles */
-.skeleton {
+/* skeletons Styles */
+.skeletons {
   background: #f6f7f8;
   background-image: linear-gradient(
     to right,
@@ -421,38 +421,38 @@ mjx-container mjx-math {
   animation: shimmer 1.5s infinite linear;
 }
 
-.skeleton-subject {
+.skeletons-subject {
   height: 120px;
   border-radius: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.skeleton-chapter,
-.skeleton-topic {
+.skeletons-chapter,
+.skeletons-topic {
   height: 50px;
   border-radius: 0.5rem;
   margin-bottom: 0.75rem;
 }
 
-.skeleton-question {
+.skeletons-question {
   height: 200px;
   border-radius: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.skeleton-option {
+.skeletons-option {
   height: 50px;
   border-radius: 0.5rem;
   margin-bottom: 0.75rem;
 }
 
-.skeleton-sidebar {
+.skeletons-sidebar {
   height: 100%;
   border-radius: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.skeleton-image {
+.skeletons-image {
   width: 100%;
   height: 100%;
   border-radius: 10px;
@@ -467,7 +467,7 @@ mjx-container mjx-math {
   animation: shimmer 1.5s infinite linear;
 }
 
-.dark .skeleton {
+.dark .skeletons {
   background: #2d3748;
   background-image: linear-gradient(
     to right,

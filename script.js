@@ -110,33 +110,33 @@ function renderContent(html) {
   return html;
 }
 
-function showSkeletons(element, skeletonClass, count) {
+function showSkeletons(element, skeletonsClass, count) {
   element.html(
       Array(count)
-          .fill(`<div class="skeleton ${skeletonClass}"></div>`)
+          .fill(`<div class="skeletons ${skeletonsClass}"></div>`)
           .join('')
   );
 }
 
 function showSubjectSkeletons() {
-  showSkeletons($subjects, 'skeleton-subject', 3);
+  showSkeletons($subjects, 'skeletons-subject', 3);
 }
 
 function showChapterSkeletons() {
-  showSkeletons($chapters, 'skeleton-chapter', SKELETON_COUNT);
+  showSkeletons($chapters, 'skeletons-chapter', SKELETON_COUNT);
 }
 
 function showTopicSkeletons() {
-  showSkeletons($topics, 'skeleton-topic', SKELETON_COUNT);
+  showSkeletons($topics, 'skeletons-topic', SKELETON_COUNT);
 }
 
 function showQuestionSkeletons() {
   $questionContent.html(`
-  <div class="skeleton skeleton-question"></div>
-  <div class="skeleton skeleton-option"></div>
-  <div class="skeleton skeleton-option"></div>
-  <div class="skeleton skeleton-option"></div>
-  <div class="skeleton skeleton-option"></div>
+  <div class="skeletons skeletons-question"></div>
+  <div class="skeletons skeletons-option"></div>
+  <div class="skeletons skeletons-option"></div>
+  <div class="skeletons skeletons-option"></div>
+  <div class="skeletons skeletons-option"></div>
 `);
 }
 
