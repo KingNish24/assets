@@ -3,7 +3,7 @@
   <div class="skeletons skeletons-option"></div>
   <div class="skeletons skeletons-option"></div>
   <div class="skeletons skeletons-option"></div>
-  <div class="skeletons skeletons-option"></div>
+  <div class="skeletons skeletons-option"></div> 
 `)}function startTimer(){timer=0,clearInterval(timerInterval),timerInterval=setInterval(()=>{timer++,$timer.text(formatTime(timer))},1e3)}function stopTimer(){clearInterval(timerInterval)}function fetchAndRenderImage(){fetch(`${API_BASE}banner`,{method:"GET",headers:{"Content-Type":"application/json"}}).then(a=>a.json()).then(a=>{const b=a.url,c=a.clickUrl,d=document.getElementById("image-container");d.innerHTML=`<img id="image" class="shadow-md transition-transform duration-300 flex items-center justify-between cursor-pointer" src=${b} alt="Discord" onclick="window.open('${c}', '_blank')">`}).catch(a=>console.error("Error fetching image:",a))}function fetchAndRenderSubjects(){$subjectContainer.show(),showSubjectSkeletons(),$subjects.html("");[{name:"maths",icon:"fas fa-calculator",chapters:32,questions:4515,color:"blue"},{name:"physics",icon:"fas fa-rocket",chapters:28,questions:4507,color:"orange"},{name:"chemistry",icon:"fas fa-flask",chapters:31,questions:4243,color:"green"}].forEach(a=>{$subjects.append(`
         <div class="subject-card bg-${a.color}-200 text-gray-800 p-7 rounded-2xl shadow-md transition-transform duration-300 flex items-center justify-between cursor-pointer hover:scale-105" data-subject="${a.name}">
           <div>
